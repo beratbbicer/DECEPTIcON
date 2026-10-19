@@ -1,0 +1,1505 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Ethics and Warnings — DECEPTIcON</title><style>
+      /*
+       * The approved palette (design study, Option A). Each role is named for
+       * the job it does, not the colour it happens to be, so the dark block can
+       * re-map it. The pre-existing names --bg / --surface / --fg / --muted /
+       * --rule / --accent* keep their meanings, so page-level CSS written
+       * against the old layout keeps working; the tokens are aliased where the
+       * palette introduced a new name for the same job.
+       *
+       * Contrast: every text pair used by the site is >= 4.5:1 and every
+       * interactive boundary is >= 3:1 in both schemes. The deploy audit
+       * recomputes them; do not change a value without re-running it.
+       */
+      :root {
+        color-scheme: light dark;
+
+        /* Ground: surfaces, back to front. */
+        --bg: #fbfaf8;
+        --surface: #ffffff;
+        --tint: #f3f0ea;
+        --tint-brand: #e9f0fa;
+        --tint-teal: #e2f1ed;
+
+        /* Ink and hairlines. */
+        --fg: #191a1c;
+        --muted: #55575e;
+        --rule: #e3e0d9;
+        --rule-strong: #c8c4ba;
+        /* Interactive boundaries only (inputs, quiet buttons, copy button):
+           3:1 against every light surface above. Never use for body text. */
+        --control-border: #8b877d;
+
+        /* Emphasis family. Brand = links and primary actions. */
+        --accent: #1b4a88;
+        --accent-hover: #133566;
+        --accent-fg: #ffffff;
+        --accent-2: #0b6054;
+        --accent-3: #8d2f12;
+        --on-rust: #ffffff;
+        --neutral: #6b6a64;
+
+        /* Tinted surfaces, kept under their old names too. */
+        --accent-soft: var(--tint-brand);
+        --accent-2-soft: var(--tint-teal);
+        --accent-3-soft: #fbeee7;
+
+        --row-alt: #f6f4ef;
+        --row-hover: color-mix(in srgb, var(--surface) 92%, var(--accent) 8%);
+
+        /* Data band: the strongest rhythm break, kept from the shared system. */
+        --band-from: #12314f;
+        --band-to: #1b4a88;
+        --band-ink: #f7fafd;
+        --band-muted: #cddcee;
+        --plate: #ffffff;
+        --plate-ink: #191a1c;
+        --plate-muted: #55575e;
+
+        --focus: var(--accent);
+        --focus-on-band: #ffffff;
+
+        /* Geometry: a wider canvas with one reading measure inside it. */
+        --wrap: 68rem;
+        /* 50.213rem = 803.41px at the 16px root: the rendered width of the
+           page h1's 26ch bar at the widest breakpoint (1280px). Fixed in rem,
+           not ch, so every block shares the h1's width and the bar cannot
+           drift with its own display font size. */
+        --measure: 50.213rem;
+        --gutter: 1.25rem;
+        --radius: 10px;
+
+        --font-sans:
+          system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
+          sans-serif;
+        --font-display:
+          ui-serif, "Iowan Old Style", "Palatino Linotype", Georgia,
+          "Times New Roman", serif;
+        --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #121316;
+          --surface: #1a1c20;
+          --tint: #1d1f24;
+          --tint-brand: #172436;
+          --tint-teal: #14231f;
+
+          --fg: #eceae5;
+          --muted: #a8a8a3;
+          --rule: #2c2e33;
+          --rule-strong: #3d4046;
+          --control-border: #6a6e77;
+
+          --accent: #93bcf7;
+          --accent-hover: #b6d3fb;
+          --accent-fg: #10203a;
+          --accent-2: #7ed6c6;
+          --accent-3: #f0a27b;
+          --on-rust: #2a1408;
+          --neutral: #a8a8a3;
+
+          --accent-soft: var(--tint-brand);
+          --accent-2-soft: var(--tint-teal);
+          --accent-3-soft: #241a16;
+
+          --row-alt: #191b1f;
+          --row-hover: color-mix(in srgb, var(--surface) 88%, var(--accent) 12%);
+
+          /* The band stays the strongest saturated surface but lifts against
+             the dark ground so the section boundary still reads. */
+          --band-from: #1c3453;
+          --band-to: #274b79;
+          --band-ink: #f2f7ff;
+          --band-muted: #d2dceb;
+          --plate: #f7f8fa;
+          --plate-ink: #191a1c;
+          --plate-muted: #55575e;
+
+          --focus: var(--accent);
+          --focus-on-band: #ffffff;
+        }
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      /*
+       * Single source of horizontal geometry. The header inner, the main
+       * column, the CTA band, and the footer inner all carry .wrap, so their
+       * content edges coincide at every viewport width. Nothing else may set
+       * width, max-width, or margin-inline for those containers.
+       *
+       * The canvas is wider than the reading column (--wrap), while every
+       * text-bearing block inside .site-main is capped at --measure, the same
+       * width as the h1's accent bar. Figures and tables align to that edge
+       * too; a wide table scrolls inside it rather than widening the page.
+       */
+      .wrap {
+        width: 100%;
+        max-width: var(--wrap);
+        margin-inline: auto;
+        padding-inline: var(--gutter);
+        box-sizing: border-box;
+      }
+
+      /* The one place the shared gutter changes. */
+      @media (max-width: 640px) {
+        :root {
+          --gutter: 1rem;
+        }
+      }
+
+      html {
+        font-size: 100%;
+      }
+
+      @media (prefers-reduced-motion: no-preference) {
+        html {
+          scroll-behavior: smooth;
+        }
+      }
+
+      body {
+        margin: 0;
+        /* Full-viewport accent rule. Keep identical to .site-footer below. */
+        border-top: 10px solid var(--accent);
+        background: var(--bg);
+        color: var(--fg);
+        font-family: var(--font-sans);
+        font-size: 1.0625rem;
+        line-height: 1.65;
+        -webkit-text-size-adjust: 100%;
+      }
+
+      ::selection {
+        background: var(--tint-brand);
+        color: var(--fg);
+      }
+
+      h1,
+      h2,
+      h3,
+      h4 {
+        line-height: 1.2;
+        text-wrap: balance;
+        scroll-margin-top: 6rem;
+      }
+
+      h1 {
+        font-size: clamp(2rem, 5vw, 2.75rem);
+        letter-spacing: -0.01em;
+        margin: 0 0 1.25rem;
+      }
+
+      h2 {
+        font-size: clamp(1.35rem, 3vw, 1.65rem);
+        letter-spacing: -0.01em;
+        margin: 2.75rem 0 0.85rem;
+      }
+
+      h3 {
+        font-size: 1.1rem;
+        margin: 2rem 0 0.6rem;
+      }
+
+      h4 {
+        font-size: 1rem;
+        margin: 1.5rem 0 0.5rem;
+      }
+
+      /*
+       * Heading permalinks. The link is zero-width, so it cannot change
+       * wrapping, size, or line height; the symbol sits just past the heading
+       * text and is revealed on hover, keyboard focus, or (where there is no
+       * hover) at reduced opacity. It stays in the tab order at all times.
+       */
+      h1,
+      h2,
+      h3,
+      h4 {
+        position: relative;
+      }
+
+      /*
+       * Inline, so the link inherits the heading's own font metrics: an empty
+       * inline box has the same strut as the text beside it and therefore adds
+       * no width and no line-box height (an inline-block of any height can
+       * raise the line box by a fraction of a pixel).
+       */
+      .heading-anchor {
+        /*
+         * Containing block for the symbol below. Without this the symbol's
+         * absolute position resolves against the heading, which put it over
+         * the first glyphs instead of after the last one.
+         */
+        position: relative;
+        display: inline;
+        color: var(--muted);
+        text-decoration: none;
+        font-weight: 400;
+        vertical-align: baseline;
+        opacity: 0;
+      }
+
+      /*
+       * Out of flow, so it adds no inline size: the anchor stays zero-width at
+       * the end of the heading text and the symbol is drawn just past it.
+       */
+      .heading-anchor > span {
+        position: absolute;
+        inset-block-start: 0;
+        inset-inline-start: 0.3em;
+        font-size: 0.8em;
+        line-height: 1;
+        white-space: nowrap;
+      }
+
+      :is(h1, h2, h3, h4):hover > .heading-anchor,
+      .heading-anchor:focus-visible {
+        opacity: 1;
+      }
+
+      .heading-anchor:hover,
+      .heading-anchor:focus-visible {
+        color: var(--accent);
+      }
+
+      .heading-anchor:focus-visible > span {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+        border-radius: 3px;
+      }
+
+      /*
+       * No hover to reveal the symbol: keep it visible but secondary to the
+       * heading. Hover and focus-visible above still raise it to full opacity
+       * on pointer devices, and on touch after a tap or keyboard focus.
+       */
+      @media (hover: none), (pointer: coarse) {
+        .heading-anchor {
+          opacity: 0.55;
+        }
+      }
+
+      @media (prefers-reduced-motion: no-preference) {
+        .heading-anchor {
+          transition: opacity 120ms ease;
+        }
+      }
+
+      p {
+        margin: 0 0 1rem;
+        text-wrap: pretty;
+      }
+
+      /*
+       * Justified prose. Body copy sets flush on both edges of the measure,
+       * so the reading column reads as one block and every page shares the
+       * same right edge.
+       *
+       * Justifying without hyphenation trades a ragged edge for rivers, so
+       * the dictionary hyphenator runs alongside it. `hyphens: auto` only
+       * does anything when the document declares a language; <html lang="en">
+       * above provides it. The browser leaves the last line of a paragraph
+       * and any line holding a single word at the start edge, which is what
+       * we want, and nothing here sets text-align-last.
+       *
+       * `text-wrap: wrap` overrides the `pretty` balancing on p above. The
+       * two do not combine: `pretty` moves words down to avoid a short last
+       * line, which leaves earlier lines short, and justification then has to
+       * spread that shortfall across the few gaps in each line. Measured at
+       * 1280px, dropping `pretty` inside justified prose took the worst
+       * inter-word gap from 3.54x the space width to 3.03x and the number of
+       * lines over 2.5x from 85 to 56. Chromium's default hyphenation limits
+       * (5/2/2) are already the most permissive that change the result:
+       * hyphenate-limit-chars at 4/2/2 renders identically, and 6/3/3
+       * hyphenates less and stretches more.
+       *
+       * Below 768px the column is too narrow to justify: at 360px the measure
+       * is 328px, about 35 characters, and the same audit found gaps up to
+       * 17.8x the space width on three-word lines. That range keeps the
+       * ragged edge it already had.
+       */
+      @media (min-width: 768px) {
+        /*
+         * Blocks shaped like prose but not prose are excluded with :not()
+         * rather than reset in a second rule, so their own alignment and
+         * line-breaking are left exactly as they were: the homepage's
+         * component copy (eyebrow, action row, cards and their body copy,
+         * metric values), and the status page's form UI and live region.
+         * Justifying those would stretch a handful of short lines inside
+         * narrow boxes.
+         *
+         * The containers are listed as well as their paragraphs because
+         * text-align inherits: excluding only `.card p` would still leave it
+         * justified by the `li.card` above it.
+         */
+        .site-main :is(p, li, dd):not(
+            .eyebrow,
+            .hero-actions,
+            .card,
+            .card p,
+            .card__kicker,
+            form,
+            form p,
+            .status-result,
+            .status-result p,
+            .hero-stats dd,
+            .metrics dd
+          ) {
+          text-align: justify;
+          hyphens: auto;
+          text-wrap: wrap;
+        }
+
+        /*
+         * Identifiers are not words: never break a filename, a flag, or a
+         * model name at a dictionary hyphen.
+         */
+        .site-main :is(code, kbd, samp) {
+          hyphens: none;
+        }
+      }
+
+      strong {
+        font-weight: 650;
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration: underline;
+        text-decoration-thickness: 1px;
+        text-underline-offset: 0.16em;
+      }
+
+      a:hover {
+        text-decoration-thickness: 2px;
+      }
+
+      :where(a, button, input, select, textarea, summary):focus-visible {
+        outline: 2px solid var(--focus);
+        outline-offset: 2px;
+        border-radius: 3px;
+      }
+
+      .skip-link {
+        position: absolute;
+        left: 1rem;
+        top: 0;
+        z-index: 10;
+        transform: translateY(-150%);
+        padding: 0.5rem 0.75rem;
+        background: var(--accent);
+        color: var(--accent-fg);
+        border-radius: 0 0 4px 4px;
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+
+      .skip-link:focus {
+        transform: translateY(0);
+      }
+
+      /* ---------------------------------------------------------------- header */
+
+      .site-header {
+        background: var(--surface);
+        border-bottom: 1px solid var(--rule);
+      }
+
+      .header-inner {
+        padding-block: 1.15rem;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem 1.5rem;
+      }
+
+      .site-name {
+        font-weight: 650;
+        font-size: 1.05rem;
+        letter-spacing: 0.01em;
+        color: var(--fg);
+        text-decoration: none;
+      }
+
+      .site-name:hover {
+        text-decoration: underline;
+        text-underline-offset: 0.18em;
+      }
+
+      .site-nav {
+        margin-inline-start: auto;
+      }
+
+      .site-nav ul {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.25rem 1.1rem;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        font-size: 0.9rem;
+      }
+
+      .site-nav a {
+        display: inline-block;
+        padding-block: 0.2rem;
+        color: var(--muted);
+        text-decoration: none;
+      }
+
+      .site-nav a:hover {
+        color: var(--accent-2);
+        text-decoration: underline;
+        text-decoration-color: var(--accent-2);
+        text-underline-offset: 0.2em;
+      }
+
+      .site-nav a[aria-current="page"] {
+        color: var(--accent-2);
+        font-weight: 600;
+        text-decoration: none;
+        border-bottom: 2px solid var(--accent-2);
+      }
+
+      /*
+       * "Get access" is a call to action, not an ordinary nav item. It stays
+       * inside the same <ul> so it keeps the same tab order, and gets a filled
+       * brand treatment instead of a text link. The 2.5rem minimum height
+       * keeps the target comfortable where links wrap onto several rows.
+       */
+      .site-nav a.nav-cta {
+        display: inline-flex;
+        align-items: center;
+        min-height: 2.5rem;
+        padding: 0.3rem 0.85rem;
+        border: 1px solid var(--accent);
+        border-radius: 6px;
+        background: var(--accent);
+        color: var(--accent-fg);
+        font-weight: 650;
+        text-decoration: none;
+      }
+
+      .site-nav a.nav-cta:hover {
+        background: var(--accent-hover);
+        border-color: var(--accent-hover);
+        color: var(--accent-fg);
+        text-decoration: none;
+      }
+
+      /* The ring must stay visible against the filled control. */
+      .site-nav a.nav-cta:focus-visible {
+        outline-color: var(--fg);
+      }
+
+      .site-nav a.nav-cta[aria-current="page"] {
+        background: var(--accent-hover);
+        border-color: var(--accent-hover);
+        border-bottom-color: var(--accent-hover);
+        color: var(--accent-fg);
+      }
+
+      @media (max-width: 899px) {
+        .site-nav {
+          flex-basis: 100%;
+          margin-inline-start: 0;
+          margin-block-start: 0.35rem;
+        }
+      }
+
+      /* ------------------------------------------------------------------ main */
+
+      .site-main {
+        padding-block: 2.75rem 4.5rem;
+      }
+
+      /*
+       * Page header. Markdown cannot wrap its opening in a <header>, so the
+       * treatment binds to the two elements every prose page begins with: the
+       * h1 is the display title, the paragraph under it is the lede. Serif
+       * display type, tight leading, a rule under the title, and generous
+       * space after the lede make each page open rather than start.
+       */
+      .site-main > h1 {
+        margin-block: 0 1.5rem;
+        padding-block-end: 1rem;
+        border-block-end: 2px solid var(--accent);
+        font-family: var(--font-display);
+        font-size: clamp(2.2rem, 4.6vw, 3.25rem);
+        font-weight: 600;
+        line-height: 1.05;
+        letter-spacing: -0.015em;
+      }
+
+      /*
+       * Section rhythm: a hairline boundary above every section title and a
+       * short accent rule below it. The short rule is the approved section
+       * marker; it replaces the old cycling dot and generalises to every
+       * markdown page, which cannot emit the preview's section wrappers.
+       *
+       * Alternating per-section ground is the one effect dropped: it needs an
+       * element that starts and ends with the section, and markdown emits
+       * flat siblings only. The ground varies instead at block level (tables,
+       * code, quotes, figures), which is where the reader actually looks.
+       */
+      .site-main > h2 {
+        margin-block: 3.5rem 0.9rem;
+        padding-block-start: 1.4rem;
+        border-block-start: 1px solid var(--rule);
+        font-family: var(--font-display);
+        font-size: clamp(1.45rem, 2.6vw, 1.85rem);
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+
+      .site-main > h2::after {
+        content: "";
+        display: block;
+        inline-size: 2.75rem;
+        block-size: 3px;
+        margin-block-start: 0.7rem;
+        border-radius: 2px;
+        background: var(--accent);
+      }
+
+      .site-main > h1 + h2 {
+        border-top: 0;
+        padding-top: 0;
+      }
+
+      /*
+       * One reading measure, applied to every block the page itself owns: the
+       * title and the section headings (their hairline rules and short accent
+       * bars included), prose, lists, definition lists, quotes, code, figures,
+       * figcaptions, and tables. Headings are in this list deliberately: a
+       * heading box defaulted to the full canvas, so the rule above each
+       * section ran past the text by the difference between --wrap and
+       * --measure even while the paragraphs were already capped. Covering
+       * every direct child that can carry text means a page cannot regain
+       * that overhang through a block type nobody remembered to list.
+       * Nested components stay inside their own containers.
+       */
+      .site-main > :is(
+          h1,
+          h2,
+          h3,
+          h4,
+          p,
+          ul,
+          ol,
+          dl,
+          blockquote,
+          pre,
+          figure,
+          figcaption,
+          table,
+          section,
+          form,
+          div,
+          noscript,
+          hr
+        ) {
+        max-inline-size: var(--measure);
+      }
+
+      /* The opening paragraph is the page lede, and it closes the header. */
+      .site-main > h1 + p {
+        margin-block: 0 2.75rem;
+        font-size: 1.175rem;
+        line-height: 1.6;
+      }
+
+      .site-main li {
+        color: var(--fg);
+      }
+
+      li::marker {
+        color: var(--accent-2);
+      }
+
+      ul,
+      ol {
+        padding-inline-start: 1.5rem;
+      }
+
+      li {
+        margin-block: 0.35rem;
+      }
+
+      li > ul,
+      li > ol {
+        margin-block: 0.35rem;
+      }
+
+      code {
+        font-family: var(--font-mono);
+        font-size: 0.9em;
+        background: var(--accent-soft);
+        padding: 0.1em 0.35em;
+        border-radius: 4px;
+      }
+
+      pre {
+        font-family: var(--font-mono);
+        font-size: 0.875rem;
+        line-height: 1.6;
+        background: var(--tint);
+        border: 1px solid var(--rule);
+        /* A component, not prose: the teal spine marks it as a block the
+           reader copies from rather than reads through. */
+        border-inline-start: 3px solid var(--accent-2);
+        border-radius: 8px;
+        padding: 1rem;
+        overflow-x: auto;
+        margin-block: 1.25rem 1.75rem;
+      }
+
+      pre code {
+        background: none;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        font-size: inherit;
+      }
+
+      pre {
+        position: relative;
+      }
+
+      /* Room for the JS-added copy button, so it never covers the text. */
+      pre.has-copy {
+        padding-block-start: 2.6rem;
+      }
+
+      .copy-btn {
+        position: absolute;
+        inset-block-start: 0.5rem;
+        inset-inline-end: 0.5rem;
+        padding: 0.25rem 0.55rem;
+        font-family: var(--font-sans);
+        font-size: 0.75rem;
+        font-weight: 600;
+        line-height: 1.2;
+        color: var(--muted);
+        background: var(--surface);
+        /* Interactive boundary: --control-border clears 3:1; --rule-strong,
+           which is a hairline, does not. */
+        border: 1px solid var(--control-border);
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      .copy-btn:hover {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+
+      .copy-btn[data-copied="true"] {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+
+      /*
+       * The tinted note. A markdown blockquote is the only callout a content
+       * page can emit, so it carries the shared teal-tinted treatment: one
+       * accent sets the surface, the rule, and the marker.
+       */
+      blockquote {
+        margin: 1.5rem 0 1.75rem;
+        padding: 1rem 1.25rem;
+        border-inline-start: 4px solid var(--accent-2);
+        border-radius: 0 var(--radius) var(--radius) 0;
+        background: var(--tint-teal);
+        color: var(--muted);
+      }
+
+      blockquote strong {
+        color: var(--fg);
+      }
+
+      blockquote > :last-child {
+        margin-block-end: 0;
+      }
+
+      hr {
+        height: 1px;
+        border: 0;
+        margin-block: 2.75rem;
+        background: var(--rule);
+      }
+
+      /* Alternate: plain rule, then a faint two-accent gradient. */
+      hr:nth-of-type(odd) {
+        background: linear-gradient(
+          90deg,
+          color-mix(in srgb, var(--accent) 60%, transparent),
+          color-mix(in srgb, var(--accent-2) 55%, transparent) 55%,
+          transparent
+        );
+      }
+
+      img,
+      video {
+        max-width: 100%;
+        height: auto;
+      }
+
+      /* ---------------------------------------------------------------- tables */
+
+      table {
+        /* Block + overflow makes the table itself the scroll container, so a
+           wide table scrolls inside the measure instead of widening the page.
+           width:100% keeps it flush with the measure like every other block. */
+        display: block;
+        overflow-x: auto;
+        overscroll-behavior-inline: contain;
+        width: 100%;
+        table-layout: auto;
+        border-collapse: collapse;
+        font-size: 0.875rem;
+        font-variant-numeric: tabular-nums;
+        margin-block: 1.25rem 2rem;
+      }
+
+      th,
+      td {
+        padding: 0.4rem 0.6rem;
+        text-align: left;
+        vertical-align: top;
+        overflow-wrap: anywhere;
+      }
+
+      @media (max-width: 560px) {
+        table {
+          font-size: 0.82rem;
+        }
+
+        th,
+        td {
+          padding: 0.35rem 0.4rem;
+        }
+      }
+
+      thead th {
+        background: var(--tint-brand);
+        font-weight: 650;
+        white-space: nowrap;
+        border-bottom: 2px solid var(--accent);
+      }
+
+      tbody td {
+        border-bottom: 1px solid var(--rule);
+      }
+
+      /* Close the table: without a last edge it bleeds into the next block. */
+      tbody tr:last-child td {
+        border-block-end: 1px solid var(--rule-strong);
+      }
+
+      tbody tr:nth-child(even) {
+        background: var(--row-alt);
+      }
+
+      tbody tr:hover {
+        background: var(--row-hover);
+      }
+
+      tbody td:first-child,
+      tbody th:first-child {
+        font-weight: 500;
+      }
+
+      caption {
+        caption-side: top;
+        text-align: left;
+        color: var(--muted);
+        font-style: italic;
+        padding-block-end: 0.5rem;
+      }
+
+      td:not(:first-child) {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* --------------------------------------------------------------- figures */
+
+      /*
+       * Paper figures — the subject-characteristics section of the dataset
+       * page. A figure may be wider than the prose measure, but never wider
+       * than the canvas, and it is never upscaled past its intrinsic size:
+       * `max-width: 100%` with no width shrinks a 2092px raster to the column
+       * and leaves a small one at its natural size. The image sits on a raised
+       * card; the caption stays outside it, in the muted caption style the
+       * tables use. Each figure is a block, so narrow screens already stack
+       * them in one column; only the card padding tightens.
+       */
+      .data-figure {
+        max-inline-size: var(--measure);
+        margin-inline: 0;
+        margin-block: 2rem 2.5rem;
+      }
+
+      .data-figure img {
+        display: block;
+        width: auto;
+        max-width: 100%;
+        height: auto;
+        padding: 0.75rem;
+        border: 1px solid var(--rule);
+        border-radius: var(--radius);
+        background: var(--surface);
+        box-shadow: 0 6px 18px rgba(20, 24, 32, 0.07);
+      }
+
+      .data-figure figcaption {
+        max-inline-size: none;
+        margin-block-start: 0.75rem;
+        color: var(--muted);
+        font-size: 0.85rem;
+        font-style: italic;
+        line-height: 1.55;
+      }
+
+      @media (max-width: 640px) {
+        .data-figure {
+          margin-block: 1.75rem 2rem;
+        }
+
+        .data-figure img {
+          padding: 0.4rem;
+        }
+      }
+
+      /* -------------------------------------------------------------- shared system */
+
+      /*
+       * Eyebrow: letterspaced, teal, with the approved short rule before it.
+       * Used by the homepage hero and the status page.
+       */
+      .eyebrow {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        margin: 0 0 1.1rem;
+        font-size: 0.75rem;
+        font-weight: 650;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+        color: var(--accent-2);
+      }
+
+      .eyebrow::before {
+        content: "";
+        inline-size: 2.25rem;
+        block-size: 1px;
+        background: currentColor;
+      }
+
+      /* ---------------------------------------------------------- Option A hero */
+
+      /*
+       * Editorial hero: no colour fill, serif display headline, hairline
+       * rules, generous whitespace. Option A of the design study.
+       */
+      .hero {
+        /* .site-main already supplies the top space; the hero adds only the
+           room below itself, before the card row. */
+        padding-block: 0 3.5rem;
+      }
+
+      .hero h1 {
+        max-inline-size: var(--measure);
+        margin: 0;
+        font-family: var(--font-display);
+        font-size: clamp(2.35rem, 5.4vw, 4rem);
+        font-weight: 600;
+        line-height: 1.04;
+        letter-spacing: -0.015em;
+        text-wrap: balance;
+      }
+
+      .hero-lead {
+        max-inline-size: var(--measure);
+        margin-block: 1.5rem 0;
+        font-size: 1.2rem;
+        line-height: 1.55;
+        color: var(--fg);
+      }
+
+      .hero-note {
+        max-inline-size: var(--measure);
+        margin-block: 0.9rem 0;
+        font-size: 0.98rem;
+        color: var(--muted);
+      }
+
+      /* Every direct hero block shares the one measure, including the
+         eyebrow and the action row, so the homepage has the same right edge
+         as the prose pages. */
+      .hero > :is(p, dl) {
+        max-inline-size: var(--measure);
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.6rem 1.75rem;
+        margin-block: 2rem 0;
+      }
+
+      .text-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        min-height: 2.75rem;
+        color: var(--accent);
+        font-weight: 600;
+        text-decoration: underline;
+        text-decoration-thickness: 1px;
+        text-underline-offset: 0.22em;
+      }
+
+      .text-link:hover {
+        color: var(--accent-hover);
+        text-decoration-thickness: 2px;
+      }
+
+      .text-link .arrow {
+        transition: transform 120ms ease;
+      }
+
+      .text-link:hover .arrow {
+        transform: translateX(3px);
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .text-link .arrow {
+          transition: none;
+        }
+
+        .text-link:hover .arrow {
+          transform: none;
+        }
+      }
+
+      /* The editorial stat strip: rules above and below, no boxes. */
+      .hero-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+        gap: 1rem 2rem;
+        margin: 2.5rem 0 0;
+        padding-block: 1.1rem;
+        border-block: 1px solid var(--rule);
+      }
+
+      .hero-stats > div + div {
+        border-inline-start: 1px solid var(--rule);
+        padding-inline-start: 1.5rem;
+      }
+
+      @media (max-width: 620px) {
+        .hero-stats > div + div {
+          border-inline-start: 0;
+          padding-inline-start: 0;
+        }
+      }
+
+      .hero-stats dt {
+        font-size: 0.72rem;
+        font-weight: 650;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .hero-stats dd {
+        margin: 0.15rem 0 0;
+        font-size: 1.35rem;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.01em;
+      }
+
+      /* ------------------------------------------------------------------ buttons */
+
+      /* 44px minimum target, border included. Used by the CTA band and the
+         status form. */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 2.75rem;
+        padding: 0.6rem 1.1rem;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        font-family: var(--font-sans);
+        font-size: 0.95rem;
+        font-weight: 650;
+        line-height: 1.2;
+        text-decoration: none;
+      }
+
+      .btn-primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: var(--accent-fg);
+      }
+
+      .btn-primary:hover {
+        background: var(--accent-hover);
+        border-color: var(--accent-hover);
+      }
+
+      .btn-primary:focus-visible {
+        outline-color: var(--fg);
+      }
+
+      .btn-secondary {
+        background: transparent;
+        border-color: var(--control-border);
+        color: var(--fg);
+      }
+
+      .btn-secondary:hover {
+        background: var(--tint-brand);
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      /* ------------------------------------------------------------------- cards */
+
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+        gap: 1.25rem;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      .card {
+        margin: 0;
+        padding: 1.5rem 1.5rem 1.35rem;
+        border: 1px solid var(--rule);
+        border-block-start: 4px solid var(--accent);
+        border-radius: var(--radius);
+        background: var(--surface);
+      }
+
+      .card--teal {
+        border-block-start-color: var(--accent-2);
+      }
+
+      .card--rust {
+        border-block-start-color: var(--accent-3);
+      }
+
+      .card__kicker {
+        margin: 0 0 0.5rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+
+      .card--teal .card__kicker {
+        color: var(--accent-2);
+      }
+
+      .card--rust .card__kicker {
+        color: var(--accent-3);
+      }
+
+      .card :is(h2, h3) {
+        font-size: 1.1rem;
+        margin-block: 0 0.5rem;
+        letter-spacing: 0;
+      }
+
+      .card p:last-child {
+        margin: 0;
+        font-size: 0.95rem;
+        line-height: 1.55;
+        color: var(--muted);
+      }
+
+      @media (prefers-reduced-motion: no-preference) {
+        .card {
+          transition:
+            border-color 140ms ease,
+            box-shadow 140ms ease,
+            transform 140ms ease;
+        }
+
+        .card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 18px rgba(20, 24, 32, 0.07);
+        }
+      }
+
+      /* --------------------------------------------- definition ledger and metrics */
+
+      /*
+       * Label/value pairs on one baseline, ruled like a ledger. A markdown
+       * page can emit a plain <dl>, so the treatment is bound to that too.
+       */
+      .facts,
+      .site-main > dl {
+        display: grid;
+        grid-template-columns: minmax(9rem, 13rem) minmax(0, 1fr);
+        margin: 0;
+        border-block-end: 1px solid var(--rule);
+      }
+
+      .facts dt,
+      .facts dd,
+      .site-main > dl dt,
+      .site-main > dl dd {
+        margin: 0;
+        padding-block: 0.85rem;
+        border-block-start: 1px solid var(--rule);
+      }
+
+      .facts dt,
+      .site-main > dl dt {
+        padding-inline-end: 1.5rem;
+        font-size: 0.85rem;
+        font-weight: 650;
+        letter-spacing: 0.04em;
+        color: var(--fg);
+      }
+
+      .facts dd,
+      .site-main > dl dd {
+        max-inline-size: none;
+        color: var(--muted);
+      }
+
+      .facts dd strong,
+      .site-main > dl dd strong {
+        color: var(--fg);
+      }
+
+      @media (max-width: 640px) {
+        .facts,
+        .site-main > dl {
+          grid-template-columns: minmax(0, 1fr);
+        }
+
+        .facts dt,
+        .site-main > dl dt {
+          padding-block-end: 0;
+        }
+
+        .facts dd,
+        .site-main > dl dd {
+          padding-block-start: 0.2rem;
+          border-block-start: 0;
+        }
+      }
+
+      /* The full-bleed data band and its large metric type. */
+      .band {
+        padding-block: 2.75rem 3rem;
+        background: linear-gradient(
+          118deg,
+          var(--band-from),
+          var(--band-to)
+        );
+        color: var(--band-ink);
+      }
+
+      .band__title {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0.35rem 0.9rem;
+        margin-block-end: 1.75rem;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--band-muted);
+      }
+
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+        gap: 1.5rem 2rem;
+        margin: 0;
+      }
+
+      .metrics > div {
+        padding-block-start: 0.85rem;
+        border-block-start: 2px solid rgba(255, 255, 255, 0.35);
+      }
+
+      .metrics dt {
+        font-size: 0.75rem;
+        font-weight: 650;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--band-muted);
+      }
+
+      .metrics dd {
+        margin: 0.3rem 0 0;
+        font-size: clamp(2rem, 4.2vw, 2.9rem);
+        font-weight: 700;
+        line-height: 1.05;
+        letter-spacing: -0.03em;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .metric-note {
+        display: block;
+        margin-block-start: 0.35rem;
+        font-size: 0.82rem;
+        font-weight: 400;
+        letter-spacing: 0;
+        line-height: 1.45;
+        color: var(--band-muted);
+      }
+
+      /* -------------------------------------------------------------- CTA band */
+
+      .cta {
+        padding-block: 3rem;
+        border-block-start: 6px solid var(--accent);
+        background: var(--tint-brand);
+      }
+
+      .cta__inner {
+        display: grid;
+        grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.6fr);
+        gap: 1.75rem;
+        align-items: center;
+      }
+
+      @media (max-width: 820px) {
+        .cta__inner {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+
+      .cta__title {
+        margin: 0;
+        font-family: var(--font-display);
+        font-size: clamp(1.4rem, 2.8vw, 1.9rem);
+        font-weight: 600;
+        line-height: 1.15;
+      }
+
+      .cta__text {
+        max-width: 56ch;
+        margin-block: 0.75rem 0;
+        color: var(--muted);
+      }
+
+      .cta__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin: 0;
+        justify-content: flex-end;
+      }
+
+      @media (max-width: 820px) {
+        .cta__actions {
+          justify-content: flex-start;
+        }
+      }
+
+      /* ---------------------------------------------------------------- footer */
+
+      .site-footer {
+        background: var(--surface);
+        /* Full-viewport accent rule. Keep identical to body above. */
+        border-top: 10px solid var(--accent);
+      }
+
+      .footer-inner {
+        border: 0;
+        padding-block: 1.5rem 2.5rem;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+        font-size: 0.8125rem;
+        color: var(--muted);
+      }
+
+      @media (min-width: 700px) {
+        .footer-inner {
+          grid-template-columns: 1.2fr 1fr 1fr;
+          gap: 2rem;
+        }
+      }
+
+      .footer-block p {
+        margin: 0;
+      }
+
+      .footer-brand {
+        color: var(--fg);
+        font-weight: 600;
+        letter-spacing: 0.01em;
+      }
+
+      .footer-block ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+      }
+
+      .footer-block li {
+        margin: 0;
+      }
+
+      .footer-block a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      .footer-block a:hover {
+        color: var(--accent-hover);
+        text-decoration: underline;
+        text-underline-offset: 0.2em;
+      }
+
+      @media (max-width: 640px) {
+        .hero-actions {
+          gap: 0.35rem 1.5rem;
+        }
+      }
+
+      /* ---------------------------------------------------------------- motion */
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+          scroll-behavior: auto !important;
+        }
+      }
+
+      /* ----------------------------------------------------------------- print */
+
+      @media print {
+        :root {
+          --bg: #ffffff;
+          --surface: #ffffff;
+          --tint: #f6f6f6;
+          --tint-brand: #f2f2f2;
+          --tint-teal: #f2f2f2;
+          --fg: #000000;
+          --muted: #333333;
+          --rule: #bbbbbb;
+          --rule-strong: #777777;
+          --control-border: #555555;
+          --accent: #000000;
+          --accent-hover: #000000;
+          --accent-2: #333333;
+          --accent-3: #333333;
+          --accent-soft: #f2f2f2;
+          --accent-2-soft: #f2f2f2;
+          --accent-3-soft: #f2f2f2;
+          --accent-fg: #ffffff;
+          --row-alt: #f7f7f7;
+          --band-from: #000000;
+          --band-to: #000000;
+          --band-ink: #ffffff;
+          --band-muted: #eeeeee;
+          --plate: #ffffff;
+          --plate-ink: #000000;
+          --plate-muted: #333333;
+        }
+
+        .site-header,
+        .site-footer,
+        .cta,
+        .skip-link {
+          display: none;
+        }
+
+        body {
+          color: #000;
+          background: #fff;
+          font-size: 11pt;
+        }
+
+        .site-main {
+          width: auto;
+          max-width: none;
+          padding: 0;
+        }
+
+        a {
+          color: #000;
+          text-decoration: underline;
+        }
+
+        a[href^="http"]::after {
+          content: " (" attr(href) ")";
+          font-size: 0.85em;
+          word-break: break-all;
+        }
+
+        table {
+          display: table;
+          width: 100%;
+          max-width: 100%;
+          overflow: visible;
+          break-inside: avoid;
+          font-size: 9pt;
+        }
+
+        pre,
+        blockquote,
+        figure {
+          break-inside: avoid;
+        }
+      }
+    </style></head><body><a class="skip-link" href="#main">Skip to main content</a><header class="site-header"><div class="header-inner wrap"><a class="site-name" href="/DECEPTIcON/">DECEPTIcON</a><nav class="site-nav" aria-label="Primary"><ul><li><a href="/DECEPTIcON/">Overview</a></li><li><a href="/DECEPTIcON/dataset/">Dataset</a></li><li><a href="/DECEPTIcON/setup/">Setup</a></li><li><a href="/DECEPTIcON/ethics/" aria-current="page">Ethics</a></li><li><a href="/DECEPTIcON/citation/">Citation</a></li><li><a href="/DECEPTIcON/faq/">FAQ</a></li><li><a href="/DECEPTIcON/about/">About</a></li><li><a href="/DECEPTIcON/data-access/">Data access</a></li><li><a class="nav-cta" href="/DECEPTIcON/data-access/">Get access</a></li></ul></nav></div></header><main id="main" class="site-main wrap"><h1 id="ethics-and-warnings">Ethics and Warnings<a class="heading-anchor" href="#ethics-and-warnings" aria-label="Permalink to this section"><span aria-hidden="true">#</span></a></h1>
+<p>This page states what the dataset measures, what it does not measure, and what it must not be used for. It is written for readers outside machine learning, so technical terms are defined where they first appear.</p>
+<h2 id="what-a-label-means">What a label means<a class="heading-anchor" href="#what-a-label-means" aria-label="Permalink to this section"><span aria-hidden="true">#</span></a></h2>
+<p>Ground-truth labels annotate the factual content of a statement, not the intent of the person who made it. A statement rated false may reflect error, omission, misremembering, or a change in the underlying facts rather than a deliberate attempt to deceive, and a statement rated true may still mislead once context is removed. The labels are one fact-checking organisation’s judgments under a published rubric, applied at a particular moment in time; they are not ground truth about a speaker’s state of mind. Researchers should therefore treat a model trained on this data as a classifier of annotated statement accuracy under that rubric, and should interpret and apply its outputs with corresponding caution, especially when generalising to new speakers, topics, or periods.</p>
+<h2 id="selection-bias">Selection bias<a class="heading-anchor" href="#selection-bias" aria-label="Permalink to this section"><span aria-hidden="true">#</span></a></h2>
+<p>PolitiFact does not check a random sample of political speech. It selects statements that are checkable, notable, and often contested. The corpus therefore over-represents high-profile and controversial claims. A rate computed on this corpus describes the corpus, not political speech in general. This is a property of the source, not something the dataset can correct without new collection.</p>
+<h2 id="what-benchmark-scores-do-not-establish">What benchmark scores do not establish<a class="heading-anchor" href="#what-benchmark-scores-do-not-establish" aria-label="Permalink to this section"><span aria-hidden="true">#</span></a></h2>
+<p>Evaluation is subject-independent, so one person’s clips never appear in both the training and test folds. That removes speaker overlap within a run. It does not establish that a score transfers to new speakers, new periods, or a different kind of political speech. Assigning whole subjects to folds also does not stop clips from different subjects in the same period from landing on opposite sides of the split. The six label levels are not equally frequent, so a high overall score can hide weak performance on a smaller class. A benchmark number describes performance on this corpus under this protocol.</p>
+<h2 id="gender-composition">Gender composition<a class="heading-anchor" href="#gender-composition" aria-label="Permalink to this section"><span aria-hidden="true">#</span></a></h2>
+<p>The base release contains 50 female and 50 male subjects, aged 31 to 90 (Table 1). This is a design property of the base release. The extension paper examines the limits of balanced sampling.</p>
+<h2 id="no-individual-level-claims">No individual-level claims<a class="heading-anchor" href="#no-individual-level-claims" aria-label="Permalink to this section"><span aria-hidden="true">#</span></a></h2>
+<p>The site reports aggregate results only. It does not publish model outputs about a named person, and it does not present a classification of any individual as evidence about that person. A model score for a named subject would be an individual-level claim, and the dataset does not support one.</p>
+<h2 id="prohibited-uses">Prohibited uses<a class="heading-anchor" href="#prohibited-uses" aria-label="Permalink to this section"><span aria-hidden="true">#</span></a></h2>
+<p>The following uses are prohibited.</p>
+<ul>
+<li>Do not use the dataset to score the credibility of an individual.</li>
+<li>Do not use it for surveillance or monitoring of people.</li>
+<li>Do not use it for political targeting or profiling.</li>
+<li>Do not deploy it in a real decision system that allocates benefits or penalties, including hiring, credit, insurance, or policing.</li>
+<li>Do not generate accusations about named people from model outputs.</li>
+</ul>
+<h2 id="dual-use-and-the-limits-of-access-control">Dual use and the limits of access control<a class="heading-anchor" href="#dual-use-and-the-limits-of-access-control" aria-label="Permalink to this section"><span aria-hidden="true">#</span></a></h2>
+<p>Access to the release is gated. A requester needs an academic affiliation, an institutional email address, and acceptance of <a href="/DECEPTIcON/data-access/#terms-of-use">the terms</a>. Access control governs distribution, not use. Once artifacts are downloaded, the project cannot observe how they are used and cannot recall copies. Expiry and revocation stop future access; they do not affect material already obtained. Gating raises the cost of misuse. It does not prevent it.</p>
+<h2 id="copyright-and-privacy">Copyright and privacy<a class="heading-anchor" href="#copyright-and-privacy" aria-label="Permalink to this section"><span aria-hidden="true">#</span></a></h2>
+<p>No media is distributed. The release contains source URLs, timestamps, transcripts, and annotations; anyone who wants the video retrieves it from the original host under that host’s terms (§Data Standardization and Legal Compliance). Subjects are public figures, and the annotations concern statements rather than persons.</p>
+<h2 id="corrections-and-takedowns">Corrections and takedowns<a class="heading-anchor" href="#corrections-and-takedowns" aria-label="Permalink to this section"><span aria-hidden="true">#</span></a></h2>
+<p>To report an error in an annotation or request removal of material, use the contact on the <a href="/DECEPTIcON/data-access/">data access page</a> and include the statement identifier from the source manifest. Corrections are recorded in the release notes.</p>
+</main><section class="cta" aria-labelledby="site-cta-title"><div class="wrap cta__inner"><div><p class="cta__title" id="site-cta-title">Research access</p><p class="cta__text">The release is distributed under a research-use agreement. Terms, eligibility, and the request procedure are on the data access page.</p></div><p class="cta__actions"><a class="btn btn-primary" href="/DECEPTIcON/data-access/">Data access</a><a class="btn btn-secondary" href="/DECEPTIcON/setup/">Setup</a></p></div></section><footer class="site-footer"><div class="footer-inner wrap"><div class="footer-block"><p class="footer-brand">DECEPTIcON</p></div><nav class="footer-block" aria-label="Pages"><ul><li><a href="/DECEPTIcON/">Overview</a></li><li><a href="/DECEPTIcON/dataset/">Dataset</a></li><li><a href="/DECEPTIcON/setup/">Setup</a></li><li><a href="/DECEPTIcON/ethics/">Ethics</a></li><li><a href="/DECEPTIcON/faq/">FAQ</a></li><li><a href="/DECEPTIcON/about/">About</a></li></ul></nav><nav class="footer-block" aria-label="Data and citation"><ul><li><a href="/DECEPTIcON/data-access/">Data access</a></li><li><a href="/DECEPTIcON/citation/">Citation</a></li></ul></nav></div></footer><script type="module">(()=>{let e=`Copy`,t=(e,t)=>{if(typeof window.goatcounter?.count==`function`)try{window.goatcounter.count(t?{path:e,title:t,event:!0}:{path:e,event:!0})}catch{}},n=e=>{let t=document.createRange();t.selectNodeContents(e);let n=window.getSelection();return n?(n.removeAllRanges(),n.addRange(t),!0):!1},r=async e=>{let t=e.textContent??``;if(navigator.clipboard&&navigator.clipboard.writeText)await navigator.clipboard.writeText(t);else throw Error(`clipboard unavailable`)},i=i=>{if(i.querySelector(`:scope > .copy-btn`))return;let a=i.querySelector(`:scope > code.language-bibtex, :scope > code.language-text`);if(!a)return;let o=document.createElement(`button`);o.type=`button`,o.className=`copy-btn`,o.textContent=e,o.setAttribute(`aria-label`,`Copy to clipboard`);let s,c=()=>{o.textContent=`Copied`,o.dataset.copied=`true`,window.clearTimeout(s),s=window.setTimeout(()=>{o.textContent=e,delete o.dataset.copied},1500)};o.addEventListener(`click`,async()=>{try{await r(a),c(),t(`copy-block`)}catch{n(a)}}),i.classList.add(`has-copy`),i.append(o)};document.querySelectorAll(`pre > code.language-bibtex, pre > code.language-text`).forEach(e=>{let t=e.parentElement;t&&i(t)}),document.addEventListener(`click`,e=>{let n=e.target;if(!(n instanceof Element))return;let r=n.closest(`a[href*="huggingface.co"]`);if(r){let e=r.closest(`tr`)?.querySelector(`th, td`)?.textContent?.trim(),n=r.textContent?.trim()||e;t(`ext-huggingface`,n||void 0)}n.closest(`a[href*="/access/status/"]`)&&t(`access-status-link`)})})();</script><script data-goatcounter="https://decepticon.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script></body></html>
